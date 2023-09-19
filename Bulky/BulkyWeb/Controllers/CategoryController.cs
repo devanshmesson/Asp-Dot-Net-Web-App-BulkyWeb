@@ -24,6 +24,10 @@ namespace BulkyWeb.Controllers
         [HttpPost]
         public IActionResult Create(Category obj)
         {
+            if(int.TryParse(obj.Name, out _))
+            {
+                ModelState.AddModelError("Name", "Category Name cannot be a number");
+            }
             if(ModelState.IsValid)
             {
                 _db.Categories.Add(obj);
