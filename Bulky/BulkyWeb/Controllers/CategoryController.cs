@@ -16,5 +16,10 @@ namespace BulkyWeb.Controllers
             List<Category> categoryList = _db.Categories.ToList();
             return View(categoryList);
         }
+
+        public IActionResult Create()
+        {
+            return View();
+        }
     }
 }
