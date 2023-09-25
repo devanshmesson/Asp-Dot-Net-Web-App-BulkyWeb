@@ -5,29 +5,22 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace BulkyWebRazor_Temp.Pages.Categories
 {
-
-    public class EditModel : PageModel
+    [BindProperties]
+    public class CreateModel : PageModel
     {
         private readonly RazorApplicationDbContext _db;
-        [BindProperty]
+        
         public Category Category { get; set; }
-        public EditModel(RazorApplicationDbContext db)
+        public CreateModel(RazorApplicationDbContext db)
         {
             _db = db;
         }
 
-        public void OnGet(int? id)
-        {
-            if(id!=0 || id!=null)
-            {
-              Category = _db.Categories.Find(id);
-            }
-        }
-
         public IActionResult OnPost()
         {
-            _db.Categories.Update(Category);
+            _db.Categories.Add(Category);
             _db.SaveChanges();
+            TempData["success"] = "Category Created SuccessFully";
             return RedirectToPage("Index");
         }
     }
