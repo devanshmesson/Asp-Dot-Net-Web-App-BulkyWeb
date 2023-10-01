@@ -12,19 +12,15 @@ namespace Bulky.DataAccess.Repository
 {
     public class CategoryRepository : Repository<Category>, ICategoryRepository
     {
-       public ApplicationDbContext _context;
-        public CategoryRepository(ApplicationDbContext context): base(context)
+       public ApplicationDbContext _db;
+        public CategoryRepository(ApplicationDbContext db): base(db)
         {
-            _context = context;
-        }
-        public void Save()
-        {
-            throw new NotImplementedException();
+            _db = db;
         }
 
         public void Update(Category obj)
         {
-            throw new NotImplementedException();
+            _db.Categories.Update(obj);
         }
     }
 }
