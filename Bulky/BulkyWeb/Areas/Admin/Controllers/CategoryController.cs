@@ -3,7 +3,7 @@ using Bulky.DataAccess.Repository.IRepository;
 using Bulky.Models;
 using Microsoft.AspNetCore.Mvc;
 
-namespace BulkyWeb.Controllers
+namespace BulkyWeb.Areas.Admin.Controllers
 {
     public class CategoryController : Controller
     {
@@ -25,15 +25,15 @@ namespace BulkyWeb.Controllers
         [HttpPost]
         public IActionResult Create(Category obj)
         {
-            if(int.TryParse(obj.Name, out _))
+            if (int.TryParse(obj.Name, out _))
             {
                 ModelState.AddModelError("Name", "Category Name cannot be a number");
             }
-            if(ModelState.IsValid)
+            if (ModelState.IsValid)
             {
                 _unitOfWork.Category.Add(obj);
                 _unitOfWork.Save();
-               TempData["success"] = "Category Created Successfully";
+                TempData["success"] = "Category Created Successfully";
                 return RedirectToAction("Index", "Category");
             }
             return View();
@@ -41,7 +41,7 @@ namespace BulkyWeb.Controllers
 
         public IActionResult Edit(int? id)
         {
-            if(id == null || id ==0) 
+            if (id == null || id == 0)
             {
                 return NotFound();
             }
