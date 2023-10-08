@@ -40,9 +40,15 @@
             <span asp-validation-for="Price50" class="text-danger"></span>
         </div>
         <div class="mb-3">
-            <label asp-for=Price100>Pric100</label>
+            <label asp-for=Price100>Price100</label>
             <input asp-for=Price100 class="form-control" />
             <span asp-validation-for="Price100" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            <select asp-for="CategoryId" asp-items="ViewBag.CategoryList" class="form-select">
+            <option disabled selected>Select Category</option>
+            </select>
+            <span asp-validation-for="CategoryId" class="text-danger"></span>
         </div>
         <div class="mb-3">
             <label asp-for=Price></label>
