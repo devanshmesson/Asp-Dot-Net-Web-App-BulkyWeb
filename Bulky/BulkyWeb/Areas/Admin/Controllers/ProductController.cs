@@ -1,5 +1,6 @@
 ﻿using Bulky.DataAccess.Repository.IRepository;
 using Bulky.Models;
+using Bulky.Models.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
@@ -26,20 +27,24 @@ namespace BulkyWeb.Areas.Admin.Controllers
                 Text = x.Name,
                 Value = x.Id.ToString()
             });
-            //ViewBag.CategoryList = CategoryList;
-            ViewData["CategoryList"] = CategoryList;
-            return View();
+            ProductVM productVM = new()
+            {
+                Product = new Product(),
+                CategoryList = CategoryList
+            };
+            
+            return View(productVM);
         }
         [HttpPost]
-        public IActionResult Create(Product obj)
+        public IActionResult Create(ProductVM obj)
         {
-            if (int.TryParse(obj.Title, out _))
+            if (int.TryParse(obj.Product.Title, out _))
             {
                 ModelState.AddModelError("Title", "Title cannot be a number");
             }
             if (ModelState.IsValid) 
             {
-                _unitOfWork.Product.Add(obj);
+                _unitOfWork.Product.Add(obj.Product);
                 _unitOfWork.Save();
                 TempData["success"] = "Product Created Successfully";
                 return RedirectToAction("Index");
@@ -51,8 +56,18 @@ namespace BulkyWeb.Areas.Admin.Controllers
         {
             if (id != null || id > 0)
             {
-                var obj = _unitOfWork.Product.Get(x => x.Id == id);
-                return View(obj);
+                IEnumerable<SelectListItem> CategoryList = _unitOfWork.Category.GetAll().Select(x => new SelectListItem
+                {
+                    Text = x.Name,
+                    Value = x.Id.ToString()
+                });
+                ProductVM productVM = new()
+                {
+                    Product = _unitOfWork.Product.Get(x => x.Id == id),
+                    CategoryList = CategoryList
+                };
+
+                return View(productVM);
             }
             return NotFound();
         }
@@ -75,21 +90,31 @@ namespace BulkyWeb.Areas.Admin.Controllers
         {
             if(id != null || id > 0)
             {
-                var obj = _unitOfWork.Product.Get(x=>x.Id == id);
-                return View(obj);
+                IEnumerable<SelectListItem> CategoryList = _unitOfWork.Category.GetAll().Select(x => new SelectListItem
+                {
+                    Text = x.Name,
+                    Value = x.Id.ToString()
+                });
+                ProductVM productVM = new()
+                {
+                    Product = _unitOfWork.Product.Get(x => x.Id == id),
+                    CategoryList = CategoryList
+                };
+
+                return View(productVM);
             }
             return NotFound();
         }
         [HttpPost]
-        public IActionResult Edit(Product obj)
+        public IActionResult Edit(ProductVM obj)
         {
-            if(int.TryParse(obj.Title,out _))
+            if(int.TryParse(obj.Product.Title,out _))
             {
                 ModelState.AddModelError("Title", "Title cannot be null");
             }
             if (ModelState.IsValid)
             {
-                _unitOfWork.Product.Update(obj);
+                _unitOfWork.Product.Update(obj.Product);
                 _unitOfWork.Save();
                 TempData["success"] = "Product details updated successfully";
                 return RedirectToAction("Index");
