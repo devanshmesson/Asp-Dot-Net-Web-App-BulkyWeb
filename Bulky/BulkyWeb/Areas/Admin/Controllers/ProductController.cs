@@ -20,38 +20,6 @@ namespace BulkyWeb.Areas.Admin.Controllers
             return View(product);
         }
 
-        public IActionResult Create()
-        {
-            IEnumerable<SelectListItem> CategoryList = _unitOfWork.Category.GetAll().Select(x => new SelectListItem
-            {
-                Text = x.Name,
-                Value = x.Id.ToString()
-            });
-            ProductVM productVM = new()
-            {
-                Product = new Product(),
-                CategoryList = CategoryList
-            };
-            
-            return View(productVM);
-        }
-        [HttpPost]
-        public IActionResult Create(ProductVM obj)
-        {
-            if (int.TryParse(obj.Product.Title, out _))
-            {
-                ModelState.AddModelError("Title", "Title cannot be a number");
-            }
-            if (ModelState.IsValid) 
-            {
-                _unitOfWork.Product.Add(obj.Product);
-                _unitOfWork.Save();
-                TempData["success"] = "Product Created Successfully";
-                return RedirectToAction("Index");
-            }
-            return View();
-        }
-
         public IActionResult Delete(int? id)
         {
             if (id != null || id > 0)
@@ -86,27 +54,32 @@ namespace BulkyWeb.Areas.Admin.Controllers
             return View();
         }
 
-        public IActionResult Edit(int? id)
+        public IActionResult Upsert(int? id)
         {
-            if(id != null || id > 0)
+            IEnumerable<SelectListItem> CategoryList = _unitOfWork.Category.GetAll().Select(x => new SelectListItem
             {
-                IEnumerable<SelectListItem> CategoryList = _unitOfWork.Category.GetAll().Select(x => new SelectListItem
-                {
-                    Text = x.Name,
-                    Value = x.Id.ToString()
-                });
-                ProductVM productVM = new()
-                {
-                    Product = _unitOfWork.Product.Get(x => x.Id == id),
-                    CategoryList = CategoryList
-                };
-
+                Text = x.Name,
+                Value = x.Id.ToString()
+            });
+            ProductVM productVM = new()
+            {
+                Product = new Product(),
+                CategoryList = CategoryList
+            };
+            
+            if(id == null || id <= 0)
+            {
+                return View(productVM);
+            }
+            else
+            {
+                productVM.Product = _unitOfWork.Product.Get(x => x.Id == id);
                 return View(productVM);
             }
             return NotFound();
         }
         [HttpPost]
-        public IActionResult Edit(ProductVM obj)
+        public IActionResult Upsert(ProductVM obj, IFormFile? file)
         {
             if(int.TryParse(obj.Product.Title,out _))
             {
