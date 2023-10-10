@@ -22,6 +22,7 @@ namespace Bulky.DataAccess.Repository
         public void Save()
         {
              _db.SaveChanges();
+
         }
     }
 }
