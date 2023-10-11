@@ -9,9 +9,11 @@ namespace BulkyWeb.Areas.Admin.Controllers
     public class ProductController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;
-        public ProductController(IUnitOfWork unitOfWork)
+        private readonly IWebHostEnvironment _webHostEnvironment;
+        public ProductController(IUnitOfWork unitOfWork, IWebHostEnvironment webHostEnvironment)
         {
             _unitOfWork = unitOfWork;
+            _webHostEnvironment = webHostEnvironment;
         }
 
         public IActionResult Index()
@@ -87,6 +89,17 @@ namespace BulkyWeb.Areas.Admin.Controllers
             }
             if (ModelState.IsValid)
             {
+                if(file!=null)
+                {
+                    var wwwrootPath = _webHostEnvironment.WebRootPath;
+                    var fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);   
+                    var productPath = Path.Combine(wwwrootPath, @"images\product");
+                    using (var fileStream = new FileStream(Path.Combine(productPath, fileName), FileMode.Create))
+                    {
+                        file.CopyTo(fileStream);
+                    };
+                    obj.Product.ImageUrl = @"\images\product\" + fileName;
+                }
                 _unitOfWork.Product.Update(obj.Product);
                 _unitOfWork.Save();
                 TempData["success"] = "Product details updated successfully";
