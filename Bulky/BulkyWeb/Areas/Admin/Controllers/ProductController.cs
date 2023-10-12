@@ -94,13 +94,30 @@ namespace BulkyWeb.Areas.Admin.Controllers
                     var wwwrootPath = _webHostEnvironment.WebRootPath;
                     var fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);   
                     var productPath = Path.Combine(wwwrootPath, @"images\product");
+
+                    if(!string.IsNullOrEmpty(obj.Product.ImageUrl))
+                    {
+                        var oldImagePath = Path.Combine(wwwrootPath,obj.Product.ImageUrl.TrimStart('\\'));
+                        if(System.IO.File.Exists(oldImagePath))
+                        {
+                            System.IO.File.Delete(oldImagePath);    
+                        }
+                        
+                    }
                     using (var fileStream = new FileStream(Path.Combine(productPath, fileName), FileMode.Create))
                     {
                         file.CopyTo(fileStream);
                     };
                     obj.Product.ImageUrl = @"\images\product\" + fileName;
                 }
-                _unitOfWork.Product.Update(obj.Product);
+                if(obj.Product.Id == 0)
+                {
+                  _unitOfWork.Product.Add(obj.Product);
+                }
+                else
+                {
+                    _unitOfWork.Product.Update(obj.Product);
+                }
                 _unitOfWork.Save();
                 TempData["success"] = "Product details updated successfully";
                 return RedirectToAction("Index");
