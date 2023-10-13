@@ -18,7 +18,7 @@ namespace BulkyWeb.Areas.Admin.Controllers
 
         public IActionResult Index()
         {
-            var product = _unitOfWork.Product.GetAll().ToList();
+            var product = _unitOfWork.Product.GetAll("Category").ToList();
             return View(product);
         }
 
