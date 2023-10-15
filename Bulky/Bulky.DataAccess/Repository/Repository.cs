@@ -28,9 +28,13 @@ namespace Bulky.DataAccess.Repository
         public T Get(Expression<Func<T, bool>> filter, string? IncludeProperties = null)
         {
             IQueryable<T> query = dbSet;
-            foreach(var property in IncludeProperties.Split(new char[]{ ','}, StringSplitOptions.RemoveEmptyEntries))
+            if (IncludeProperties != null)
             {
-                query = query.Include(property);
+                foreach (var property in IncludeProperties.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+                {
+                    query = query.Include(property);
+                }
+
             }
             query = query.Where(filter);
             return query.FirstOrDefault();
@@ -39,16 +43,21 @@ namespace Bulky.DataAccess.Repository
         public IEnumerable<T> GetAll(string? IncludeProperties = null)
         {
             IQueryable<T> query = dbSet;
-            foreach (var property in IncludeProperties.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+
+            if (IncludeProperties != null)
             {
-                query = query.Include(property);
+                foreach (var property in IncludeProperties.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+                {
+                    query = query.Include(property);
+                }
+
             }
             return query.ToList();
         }
 
         public void Remove(T entity)
         {
-            dbSet.Remove(entity);   
+            dbSet.Remove(entity);
         }
 
         public void RemoveRange(IEnumerable<T> entities)

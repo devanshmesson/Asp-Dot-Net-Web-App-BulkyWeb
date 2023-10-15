@@ -46,6 +46,15 @@ namespace BulkyWeb.Areas.Admin.Controllers
         public IActionResult Delete(int id)
         {
             var product = _unitOfWork.Product.Get(x=>x.Id == id);
+
+            var wwwrootPath = _webHostEnvironment.WebRootPath;
+            var imagePath = product.ImageUrl.TrimStart('\\');
+            var fullImagePath = Path.Combine(wwwrootPath, imagePath);
+
+            if(System.IO.File.Exists(fullImagePath))
+            {
+                System.IO.File.Delete(fullImagePath);
+            }
             if(product != null)
             {
                 _unitOfWork.Product.Remove(product);
@@ -68,7 +77,7 @@ namespace BulkyWeb.Areas.Admin.Controllers
                 Product = new Product(),
                 CategoryList = CategoryList
             };
-            
+
             if(id == null || id <= 0)
             {
                 return View(productVM);
@@ -92,7 +101,7 @@ namespace BulkyWeb.Areas.Admin.Controllers
                 if(file!=null)
                 {
                     var wwwrootPath = _webHostEnvironment.WebRootPath;
-                    var fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);   
+                    var fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
                     var productPath = Path.Combine(wwwrootPath, @"images\product");
 
                     if(!string.IsNullOrEmpty(obj.Product.ImageUrl))
@@ -100,9 +109,9 @@ namespace BulkyWeb.Areas.Admin.Controllers
                         var oldImagePath = Path.Combine(wwwrootPath,obj.Product.ImageUrl.TrimStart('\\'));
                         if(System.IO.File.Exists(oldImagePath))
                         {
-                            System.IO.File.Delete(oldImagePath);    
+                            System.IO.File.Delete(oldImagePath);
                         }
-                        
+
                     }
                     using (var fileStream = new FileStream(Path.Combine(productPath, fileName), FileMode.Create))
                     {
@@ -112,7 +121,7 @@ namespace BulkyWeb.Areas.Admin.Controllers
                 }
                 if(obj.Product.Id == 0)
                 {
-                  _unitOfWork.Product.Add(obj.Product);
+                    _unitOfWork.Product.Add(obj.Product);
                 }
                 else
                 {
@@ -124,6 +133,17 @@ namespace BulkyWeb.Areas.Admin.Controllers
             }
             return View();
         }
+
+        #region API Calls
+
+        [HttpGet]
+        public IActionResult GetAll()
+        {
+            var product = _unitOfWork.Product.GetAll("Category").ToList();
+            return Json(new { data = product });
+
+        }
+        #endregion
 
     }
 }
