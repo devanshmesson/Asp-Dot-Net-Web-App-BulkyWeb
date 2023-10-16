@@ -22,7 +22,7 @@ namespace BulkyWeb.Areas.Admin.Controllers
             return View(product);
         }
 
-        public IActionResult Delete(int? id)
+       /* public IActionResult Delete(int? id)
         {
             if (id != null || id > 0)
             {
@@ -40,9 +40,9 @@ namespace BulkyWeb.Areas.Admin.Controllers
                 return View(productVM);
             }
             return NotFound();
-        }
+        }*/
 
-        [HttpPost]
+        [HttpDelete]
         public IActionResult Delete(int id)
         {
             var product = _unitOfWork.Product.Get(x=>x.Id == id);
@@ -59,10 +59,8 @@ namespace BulkyWeb.Areas.Admin.Controllers
             {
                 _unitOfWork.Product.Remove(product);
                 _unitOfWork.Save();
-                TempData["success"] = "Product deleted successfully";
-                return RedirectToAction("Index");
             }
-            return View();
+            return Json(new { success = true, message9 = "Delete Successful" });
         }
 
         public IActionResult Upsert(int? id)
