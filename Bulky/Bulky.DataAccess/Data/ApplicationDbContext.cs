@@ -19,7 +19,7 @@ namespace Bulky.DataAccess.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             //configuration for IdentityDbContext
-            base.OnModelCreating(modelBuilder);
+           base.OnModelCreating(modelBuilder);
             modelBuilder.Entity<Category>().HasData(
                 new Category { Id = 1, Name = "Action", DisplayOrder = 1 },
                 new Category { Id = 2, Name = "Sci-Fi", DisplayOrder = 2 },
