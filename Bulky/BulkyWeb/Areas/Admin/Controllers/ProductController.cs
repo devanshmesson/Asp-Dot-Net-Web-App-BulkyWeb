@@ -64,7 +64,7 @@ namespace BulkyWeb.Areas.Admin.Controllers
                 _unitOfWork.Product.Remove(product);
                 _unitOfWork.Save();
             }
-            return Json(new { success = true, message9 = "Delete Successful" });
+            return Json(new { success = true, message = "Delete Successful" });
         }
 
         public IActionResult Upsert(int? id)
