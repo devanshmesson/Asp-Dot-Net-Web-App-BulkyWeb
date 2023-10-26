@@ -1,3 +1,5 @@
+var dataTable;
+
 $(document).ready(function () {
     loadDataTable();
 });
@@ -7,10 +9,10 @@ function loadDataTable() {
         "ajax": { url: '/admin/company/getall' },
         "columns": [
             { data: 'name', "width": "15%" },
-            { data: 'address', "width": "15%" },
+            { data: 'streetAddress', "width": "15%" },
             { data: 'city', "width": "10%" },
-            { data: 'tate', "width": "10%" },
-            { data: 'phonenumber', "width": "15%" },
+            { data: 'state', "width": "10%" },
+            { data: 'phoneNumber', "width": "15%" },
             {
                 data: 'id',
                 "render": function (data) {
