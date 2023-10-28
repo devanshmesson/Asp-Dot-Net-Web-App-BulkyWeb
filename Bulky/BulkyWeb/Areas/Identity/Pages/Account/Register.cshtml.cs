@@ -169,6 +169,11 @@ namespace BulkyWeb.Areas.Identity.Pages.Account
                 user.City = Input.City;
                 user.State = Input.State;
                 user.PhoneNumber = Input.PhoneNumber;
+
+                if(Input.Role == SD.Role_Company) 
+                { 
+                    user.CompanyId = Input.CompanyId;
+                }
                 await _userStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
                 await _emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
 
