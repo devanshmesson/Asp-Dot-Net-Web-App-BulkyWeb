@@ -49,9 +49,11 @@ namespace Bulky.DataAccess.Repository
             return query.FirstOrDefault();
         }
 
-        public IEnumerable<T> GetAll(string? IncludeProperties = null)
+        public IEnumerable<T> GetAll(Expression<Func<T, bool>>? filter, string? IncludeProperties = null)
         {
             IQueryable<T> query = dbSet;
+            if(filter != null)
+            query = query.Where(filter);
 
             if (IncludeProperties != null)
             {

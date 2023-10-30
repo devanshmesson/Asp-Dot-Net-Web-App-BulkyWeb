@@ -20,7 +20,7 @@ namespace BulkyWeb.Areas.Customer.Controllers
 
         public IActionResult Index()
         {
-            var productList = _unitOfWork.Product.GetAll("Category").ToList();
+            var productList = _unitOfWork.Product.GetAll(IncludeProperties: "Category").ToList();
             return View(productList);
         }
         public IActionResult Details(int productId)
