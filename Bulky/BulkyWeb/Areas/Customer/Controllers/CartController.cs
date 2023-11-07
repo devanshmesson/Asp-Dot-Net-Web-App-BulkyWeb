@@ -70,7 +70,28 @@ namespace BulkyWeb.Areas.Customer.Controllers
 
         public IActionResult Summary()
         {
-            return View();
+            var claimsIdentity = (ClaimsIdentity)User.Identity;
+            var ApplicationUserId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
+
+            ShoppingCartVM shoppingCartVM = new()
+            {
+                ShoppingCartList = _unitOfWork.ShoppingCart.GetAll(x => x.ApplicationUserId == ApplicationUserId, IncludeProperties: "Product"),
+                OrderHeader = new()
+            };
+            shoppingCartVM.OrderHeader.ApplicationUser = _unitOfWork.ApplicationUser.Get(x => x.Id ==  ApplicationUserId);
+            shoppingCartVM.OrderHeader.Name = shoppingCartVM.OrderHeader.ApplicationUser.Name;
+            shoppingCartVM.OrderHeader.PhoneNumber = shoppingCartVM.OrderHeader.ApplicationUser.PhoneNumber;
+            shoppingCartVM.OrderHeader.StreetAddress = shoppingCartVM.OrderHeader.ApplicationUser.StreetAddress;
+            shoppingCartVM.OrderHeader.City = shoppingCartVM.OrderHeader.ApplicationUser.City;
+            shoppingCartVM.OrderHeader.State = shoppingCartVM.OrderHeader.ApplicationUser.State;
+            shoppingCartVM.OrderHeader.PostalCode = shoppingCartVM.OrderHeader.ApplicationUser.PostalCode;
+
+            foreach (var shoppingCart in shoppingCartVM.ShoppingCartList)
+            {
+                double price = GetPrizeBasedOnQuantity(shoppingCart);
+                shoppingCartVM.OrderHeader.OrderTotal += price * shoppingCart.Count;
+            }
+            return View(shoppingCartVM);
         }
 
         private double GetPrizeBasedOnQuantity(ShoppingCart shoppingCart)
