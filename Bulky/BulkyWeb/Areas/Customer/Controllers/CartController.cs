@@ -1,6 +1,8 @@
 ﻿using Bulky.DataAccess.Repository.IRepository;
 using Bulky.Models;
 using Bulky.Models.ViewModels;
+using Bulky.Utility;
+using BulkyBook.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -12,6 +14,8 @@ namespace BulkyWeb.Areas.Customer.Controllers
     public class CartController : Controller
     {
         public IUnitOfWork _unitOfWork { get; set; }
+        [BindProperty]
+        public ShoppingCartVM ShoppingCartVM { get; set; }
         public CartController(IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
@@ -21,18 +25,18 @@ namespace BulkyWeb.Areas.Customer.Controllers
             var claimsIdentity = (ClaimsIdentity)User.Identity;
             var ApplicationUserId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
 
-            ShoppingCartVM shoppingCartList = new()
+            ShoppingCartVM = new()
             {
                 ShoppingCartList = _unitOfWork.ShoppingCart.GetAll(x => x.ApplicationUserId == ApplicationUserId, IncludeProperties: "Product"),
                 OrderHeader = new()
             };
 
-            foreach(var shoppingCart in shoppingCartList.ShoppingCartList)
+            foreach(var shoppingCart in ShoppingCartVM.ShoppingCartList)
             {
                 double price = GetPrizeBasedOnQuantity(shoppingCart);
-                shoppingCartList.OrderHeader.OrderTotal += price * shoppingCart.Count;
+                ShoppingCartVM.OrderHeader.OrderTotal += price * shoppingCart.Count;
             }
-            return View(shoppingCartList);
+            return View(ShoppingCartVM);
         }
 
         public IActionResult Plus(int cardId)
@@ -73,25 +77,75 @@ namespace BulkyWeb.Areas.Customer.Controllers
             var claimsIdentity = (ClaimsIdentity)User.Identity;
             var ApplicationUserId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
 
-            ShoppingCartVM shoppingCartVM = new()
+            ShoppingCartVM = new()
             {
                 ShoppingCartList = _unitOfWork.ShoppingCart.GetAll(x => x.ApplicationUserId == ApplicationUserId, IncludeProperties: "Product"),
                 OrderHeader = new()
             };
-            shoppingCartVM.OrderHeader.ApplicationUser = _unitOfWork.ApplicationUser.Get(x => x.Id ==  ApplicationUserId);
-            shoppingCartVM.OrderHeader.Name = shoppingCartVM.OrderHeader.ApplicationUser.Name;
-            shoppingCartVM.OrderHeader.PhoneNumber = shoppingCartVM.OrderHeader.ApplicationUser.PhoneNumber;
-            shoppingCartVM.OrderHeader.StreetAddress = shoppingCartVM.OrderHeader.ApplicationUser.StreetAddress;
-            shoppingCartVM.OrderHeader.City = shoppingCartVM.OrderHeader.ApplicationUser.City;
-            shoppingCartVM.OrderHeader.State = shoppingCartVM.OrderHeader.ApplicationUser.State;
-            shoppingCartVM.OrderHeader.PostalCode = shoppingCartVM.OrderHeader.ApplicationUser.PostalCode;
+            ShoppingCartVM.OrderHeader.ApplicationUser = _unitOfWork.ApplicationUser.Get(x => x.Id == ApplicationUserId);
+            ShoppingCartVM.OrderHeader.Name = ShoppingCartVM.OrderHeader.ApplicationUser.Name;
+            ShoppingCartVM.OrderHeader.PhoneNumber = ShoppingCartVM.OrderHeader.ApplicationUser.PhoneNumber;
+            ShoppingCartVM.OrderHeader.StreetAddress = ShoppingCartVM.OrderHeader.ApplicationUser.StreetAddress;
+            ShoppingCartVM.OrderHeader.City = ShoppingCartVM.OrderHeader.ApplicationUser.City;
+            ShoppingCartVM.OrderHeader.State = ShoppingCartVM.OrderHeader.ApplicationUser.State;
+            ShoppingCartVM.OrderHeader.PostalCode = ShoppingCartVM.OrderHeader.ApplicationUser.PostalCode;
 
-            foreach (var shoppingCart in shoppingCartVM.ShoppingCartList)
+            foreach (var shoppingCart in ShoppingCartVM.ShoppingCartList)
             {
                 double price = GetPrizeBasedOnQuantity(shoppingCart);
-                shoppingCartVM.OrderHeader.OrderTotal += price * shoppingCart.Count;
+                ShoppingCartVM.OrderHeader.OrderTotal += price * shoppingCart.Count;
             }
-            return View(shoppingCartVM);
+            return View(ShoppingCartVM);
+        }
+        [HttpPost]
+        [ActionName("Summary")]
+        public IActionResult SummaryPost()
+        {
+            var user = (ClaimsIdentity)User.Identity;
+            var ApplicationUserId = user.FindFirst(ClaimTypes.NameIdentifier).Value;
+
+            ShoppingCartVM.ShoppingCartList = _unitOfWork.ShoppingCart.GetAll(x => x.ApplicationUserId == ApplicationUserId, IncludeProperties: "Product");
+            ShoppingCartVM.OrderHeader.ApplicationUserId = ApplicationUserId;
+            ShoppingCartVM.OrderHeader.ApplicationUser = _unitOfWork.ApplicationUser.Get(x => x.Id == ApplicationUserId);
+            ShoppingCartVM.OrderHeader.OrderDate = DateTime.Now;
+
+            foreach (var shoppingCart in ShoppingCartVM.ShoppingCartList)
+            {
+                double price = GetPrizeBasedOnQuantity(shoppingCart);
+                ShoppingCartVM.OrderHeader.OrderTotal += price * shoppingCart.Count;
+            }
+
+            if(ShoppingCartVM.OrderHeader.ApplicationUser.CompanyId.GetValueOrDefault() == 0)
+            {
+                //Customer account
+                ShoppingCartVM.OrderHeader.OrderStatus = SD.StatusPending;
+                ShoppingCartVM.OrderHeader.PaymentStatus = SD.PaymentStatusPending;
+            }
+            else
+            {
+                //Company account
+                ShoppingCartVM.OrderHeader.OrderStatus = SD.StatusApproved;
+                ShoppingCartVM.OrderHeader.PaymentStatus = SD.PaymentStatusDelayedPayment;
+            }
+
+            _unitOfWork.OrderHeader.Add(ShoppingCartVM.OrderHeader);
+            _unitOfWork.Save();
+
+            foreach (var shoppingCart in ShoppingCartVM.ShoppingCartList)
+            {
+                OrderDetail orderDetail = new()
+                {
+                    ProductId = shoppingCart.ProductId,
+                    OrderHeaderId = ShoppingCartVM.OrderHeader.Id,
+                    Count = shoppingCart.Count,
+                    Price = shoppingCart.Product.Price
+                };
+                _unitOfWork.OrderDetail.Add(orderDetail);
+                _unitOfWork.Save();
+            }
+           
+
+            return View(ShoppingCartVM);
         }
 
         private double GetPrizeBasedOnQuantity(ShoppingCart shoppingCart)
