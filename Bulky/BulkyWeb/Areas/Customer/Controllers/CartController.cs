@@ -106,7 +106,7 @@ namespace BulkyWeb.Areas.Customer.Controllers
 
             ShoppingCartVM.ShoppingCartList = _unitOfWork.ShoppingCart.GetAll(x => x.ApplicationUserId == ApplicationUserId, IncludeProperties: "Product");
             ShoppingCartVM.OrderHeader.ApplicationUserId = ApplicationUserId;
-            ShoppingCartVM.OrderHeader.ApplicationUser = _unitOfWork.ApplicationUser.Get(x => x.Id == ApplicationUserId);
+            ApplicationUser applicationUser = _unitOfWork.ApplicationUser.Get(x => x.Id == ApplicationUserId);
             ShoppingCartVM.OrderHeader.OrderDate = DateTime.Now;
 
             foreach (var shoppingCart in ShoppingCartVM.ShoppingCartList)
@@ -115,7 +115,7 @@ namespace BulkyWeb.Areas.Customer.Controllers
                 ShoppingCartVM.OrderHeader.OrderTotal += price * shoppingCart.Count;
             }
 
-            if(ShoppingCartVM.OrderHeader.ApplicationUser.CompanyId.GetValueOrDefault() == 0)
+            if(applicationUser.CompanyId.GetValueOrDefault() == 0)
             {
                 //Customer account
                 ShoppingCartVM.OrderHeader.OrderStatus = SD.StatusPending;
@@ -143,9 +143,18 @@ namespace BulkyWeb.Areas.Customer.Controllers
                 _unitOfWork.OrderDetail.Add(orderDetail);
                 _unitOfWork.Save();
             }
-           
 
-            return View(ShoppingCartVM);
+            if (applicationUser.CompanyId.GetValueOrDefault() == 0)
+            {
+                //Regular customer
+                //stripe
+            }
+
+            return RedirectToAction(nameof(OrderConfirmation), new {Id = ShoppingCartVM.OrderHeader.Id});
+        }
+        public IActionResult OrderConfirmation(int Id)
+        {
+            return View(Id);
         }
 
         private double GetPrizeBasedOnQuantity(ShoppingCart shoppingCart)
