@@ -97,6 +97,11 @@ namespace BulkyWeb.Areas.Customer.Controllers
             }
             return View(ShoppingCartVM);
         }
+   
+        public IActionResult OrderConfirmation(int Id)
+        {
+            return View(Id);
+        }
         [HttpPost]
         [ActionName("Summary")]
         public IActionResult SummaryPost()
@@ -115,7 +120,7 @@ namespace BulkyWeb.Areas.Customer.Controllers
                 ShoppingCartVM.OrderHeader.OrderTotal += price * shoppingCart.Count;
             }
 
-            if(applicationUser.CompanyId.GetValueOrDefault() == 0)
+            if (applicationUser.CompanyId.GetValueOrDefault() == 0)
             {
                 //Customer account
                 ShoppingCartVM.OrderHeader.OrderStatus = SD.StatusPending;
@@ -147,14 +152,10 @@ namespace BulkyWeb.Areas.Customer.Controllers
             if (applicationUser.CompanyId.GetValueOrDefault() == 0)
             {
                 //Regular customer
-                //stripe
+                //stripe addition
             }
 
-            return RedirectToAction(nameof(OrderConfirmation), new {Id = ShoppingCartVM.OrderHeader.Id});
-        }
-        public IActionResult OrderConfirmation(int Id)
-        {
-            return View(Id);
+            return RedirectToAction(nameof(OrderConfirmation), new { Id = ShoppingCartVM.OrderHeader.Id });
         }
 
         private double GetPrizeBasedOnQuantity(ShoppingCart shoppingCart)
