@@ -4,6 +4,7 @@ using Bulky.Utility;
 using BulkyBook.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Stripe;
 using System.Security.Claims;
 
 namespace BulkyWeb.Areas.Admin.Controllers
@@ -24,16 +25,17 @@ namespace BulkyWeb.Areas.Admin.Controllers
             return View();
         }
 
-        public IActionResult Details(int orderId) { 
+        public IActionResult Details(int orderId)
+        {
             OrderVM orderVM = new()
             {
-               OrderHeader = _unitOfWork.OrderHeader.Get(orderHeader => orderHeader.Id == orderId, IncludeProperties: "ApplicationUser"),
-               OrderDetails = _unitOfWork.OrderDetail.GetAll(orderDetail => orderDetail.OrderHeaderId == orderId, IncludeProperties: "Product")
+                OrderHeader = _unitOfWork.OrderHeader.Get(orderHeader => orderHeader.Id == orderId, IncludeProperties: "ApplicationUser"),
+                OrderDetails = _unitOfWork.OrderDetail.GetAll(orderDetail => orderDetail.OrderHeaderId == orderId, IncludeProperties: "Product")
             };
             return View(orderVM);
         }
         [HttpPost]
-        [Authorize(Roles = SD.Role_Admin+","+SD.Role_Employee)]
+        [Authorize(Roles = SD.Role_Admin + "," + SD.Role_Employee)]
         public IActionResult UpdateOrderDetail()
         {
             var orderHeaderFromDb = _unitOfWork.OrderHeader.Get(u => u.Id == OrderVM.OrderHeader.Id);
@@ -81,9 +83,9 @@ namespace BulkyWeb.Areas.Admin.Controllers
             orderHeader.TrackingNumber = OrderVM.OrderHeader.TrackingNumber;
             orderHeader.Carrier = OrderVM.OrderHeader.Carrier;
             orderHeader.OrderStatus = SD.StatusShipped;
-            orderHeader.ShippingDate  = DateTime.Now;
+            orderHeader.ShippingDate = DateTime.Now;
 
-            if(orderHeader.PaymentStatus == SD.PaymentStatusDelayedPayment)
+            if (orderHeader.PaymentStatus == SD.PaymentStatusDelayedPayment)
             {
                 orderHeader.PaymentDueDate = DateOnly.FromDateTime(DateTime.Now.AddDays(30));
             }
@@ -94,6 +96,34 @@ namespace BulkyWeb.Areas.Admin.Controllers
             return RedirectToAction(nameof(Details), new { orderId = OrderVM.OrderHeader.Id });
         }
 
+        [HttpPost]
+        [Authorize(Roles = SD.Role_Admin + "," + SD.Role_Employee)]
+        public IActionResult CancelOrder()
+        {
+            var orderHeader = _unitOfWork.OrderHeader.Get(x => x.Id == OrderVM.OrderHeader.Id);
+
+            if (orderHeader.PaymentStatus == SD.PaymentStatusApproved)
+            {
+                var options = new RefundCreateOptions
+                {
+                    Reason = RefundReasons.RequestedByCustomer,
+                    PaymentIntent = orderHeader.PaymentIntentId
+                };
+
+                var service = new RefundService();
+                Refund refund = service.Create(options);
+
+                _unitOfWork.OrderHeader.UpdateStatus(orderHeader.Id, SD.StatusCancelled, SD.StatusRefunded);
+            }
+            else
+            {
+                _unitOfWork.OrderHeader.UpdateStatus(orderHeader.Id, SD.StatusCancelled, SD.StatusCancelled);
+            }
+            _unitOfWork.Save();
+            TempData["success"] = "Order Cancelled Successfully";
+            return RedirectToAction(nameof(Details), new {orderId = orderHeader.Id});
+        }
+
         #region API Calls
 
         [HttpGet]
@@ -101,7 +131,7 @@ namespace BulkyWeb.Areas.Admin.Controllers
         {
             IEnumerable<OrderHeader> product;
 
-            if(User.IsInRole(SD.Role_Admin) || User.IsInRole(SD.Role_Employee))
+            if (User.IsInRole(SD.Role_Admin) || User.IsInRole(SD.Role_Employee))
             {
                 product = _unitOfWork.OrderHeader.GetAll(IncludeProperties: "ApplicationUser").ToList();
             }
@@ -111,7 +141,7 @@ namespace BulkyWeb.Areas.Admin.Controllers
                 var user = identity.FindFirst(ClaimTypes.NameIdentifier).Value;
                 product = _unitOfWork.OrderHeader.GetAll(orderHeader => orderHeader.ApplicationUserId == user, IncludeProperties: "ApplicationUser").ToList();
             }
-            switch(status)
+            switch (status)
             {
                 case "pending":
                     product = _unitOfWork.OrderHeader.GetAll(orderHeader => orderHeader.PaymentStatus == SD.PaymentStatusDelayedPayment);
