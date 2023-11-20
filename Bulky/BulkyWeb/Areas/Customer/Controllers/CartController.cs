@@ -91,10 +91,13 @@ namespace BulkyWeb.Areas.Customer.Controllers
             ShoppingCartVM.OrderHeader.State = ShoppingCartVM.OrderHeader.ApplicationUser.State;
             ShoppingCartVM.OrderHeader.PostalCode = ShoppingCartVM.OrderHeader.ApplicationUser.PostalCode;
 
+            var index = 0;
             foreach (var shoppingCart in ShoppingCartVM.ShoppingCartList)
             {
                 double price = GetPrizeBasedOnQuantity(shoppingCart);
-                ShoppingCartVM.OrderHeader.OrderTotal += price * shoppingCart.Count;
+                ShoppingCartVM.ShoppingCartList.ElementAt(index).Price = price;
+				ShoppingCartVM.OrderHeader.OrderTotal += price * shoppingCart.Count;
+                index++;
             }
             return View(ShoppingCartVM);
         }
@@ -186,7 +189,7 @@ namespace BulkyWeb.Areas.Customer.Controllers
                     {
                         PriceData = new SessionLineItemPriceDataOptions
                         {
-                            UnitAmount = (long)(item.Price * 100), // $20.50 => 2050
+                            UnitAmount = (long)(item.Product.Price * 100), // $20.50 => 2050
                             Currency = "usd",
                             ProductData = new SessionLineItemPriceDataProductDataOptions
                             {
