@@ -51,7 +51,7 @@ namespace BulkyWeb.Areas.Customer.Controllers
 
         public IActionResult Minus(int cardId)
         {
-            var cart = _unitOfWork.ShoppingCart.Get(x => x.Id == cardId);
+            var cart = _unitOfWork.ShoppingCart.Get(x => x.Id == cardId, tracked:true);
             if (cart.Count <= 1)
             {
                 HttpContext.Session.SetInt32(SD.SessionCart, _unitOfWork.ShoppingCart.GetAll(
@@ -69,7 +69,7 @@ namespace BulkyWeb.Areas.Customer.Controllers
 
         public IActionResult Remove(int cardId)
         {
-            var cart = _unitOfWork.ShoppingCart.Get(x => x.Id == cardId);
+            var cart = _unitOfWork.ShoppingCart.Get(x => x.Id == cardId, tracked: true);
             HttpContext.Session.SetInt32(SD.SessionCart, _unitOfWork.ShoppingCart.GetAll(
                 x=>x.ApplicationUserId == cart.ApplicationUserId).Count()-1);
             _unitOfWork.ShoppingCart.Remove(cart);
