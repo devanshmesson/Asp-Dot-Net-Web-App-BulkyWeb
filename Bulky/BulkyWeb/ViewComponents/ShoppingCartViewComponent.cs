@@ -1,10 +1,12 @@
 ﻿using Bulky.DataAccess.Repository.IRepository;
 using Bulky.Utility;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
 namespace BulkyWeb.ViewComponents
 {
+    [Authorize]
     public class ShoppingCartViewComponent : ViewComponent
     {
         public IUnitOfWork _unitOfWork { get; set; }
