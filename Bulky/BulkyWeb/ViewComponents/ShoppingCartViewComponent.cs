@@ -6,10 +6,10 @@ using System.Security.Claims;
 
 namespace BulkyWeb.ViewComponents
 {
-    [Authorize]
     public class ShoppingCartViewComponent : ViewComponent
     {
-        public IUnitOfWork _unitOfWork { get; set; }
+
+        private readonly IUnitOfWork _unitOfWork;
         public ShoppingCartViewComponent(IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
@@ -18,14 +18,15 @@ namespace BulkyWeb.ViewComponents
         public async Task<IViewComponentResult> InvokeAsync()
         {
             var claimsIdentity = (ClaimsIdentity)User.Identity;
-            var user = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
+            var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
 
-            if (user != null)
+            if (claim != null)
             {
+
                 if (HttpContext.Session.GetInt32(SD.SessionCart) == null)
                 {
-                    HttpContext.Session.SetInt32(SD.SessionCart, _unitOfWork.ShoppingCart.GetAll(x => x.ApplicationUserId == user).Count());
-
+                    HttpContext.Session.SetInt32(SD.SessionCart,
+                    _unitOfWork.ShoppingCart.GetAll(u => u.ApplicationUserId == claim.Value).Count());
                 }
 
                 return View(HttpContext.Session.GetInt32(SD.SessionCart));
@@ -35,9 +36,9 @@ namespace BulkyWeb.ViewComponents
                 HttpContext.Session.Clear();
                 return View(0);
             }
-
-
-
         }
+
     }
 }
+
+
