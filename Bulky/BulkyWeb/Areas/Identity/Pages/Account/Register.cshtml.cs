@@ -170,8 +170,8 @@ namespace BulkyWeb.Areas.Identity.Pages.Account
                 user.State = Input.State;
                 user.PhoneNumber = Input.PhoneNumber;
 
-                if(Input.Role == SD.Role_Company) 
-                { 
+                if (Input.Role == SD.Role_Company)
+                {
                     user.CompanyId = Input.CompanyId;
                 }
                 await _userStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
@@ -208,7 +208,15 @@ namespace BulkyWeb.Areas.Identity.Pages.Account
                     }
                     else
                     {
-                        await _signInManager.SignInAsync(user, isPersistent: false);
+                        if (User.IsInRole(SD.Role_Admin))
+                        {
+                            TempData["success"] = "User created successfully";
+                        }
+                        else
+                        {
+                            await _signInManager.SignInAsync(user, isPersistent: false);
+
+                        }
                         return LocalRedirect(returnUrl);
                     }
                 }
