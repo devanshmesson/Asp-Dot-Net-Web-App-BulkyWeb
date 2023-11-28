@@ -125,6 +125,7 @@ namespace BulkyWeb.Areas.Customer.Controllers
             List<ShoppingCart> shoppingCarts = _unitOfWork.ShoppingCart.GetAll(x => x.ApplicationUserId == orderHeader.ApplicationUserId).ToList();
             _unitOfWork.ShoppingCart.RemoveRange(shoppingCarts);
             _unitOfWork.Save();
+            HttpContext.Session.Clear();
 
             return View(Id);
         }
