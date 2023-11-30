@@ -65,7 +65,7 @@ namespace Bulky.DataAccess.DbInitializer
                 ApplicationUser applicationUser = _applicationDbContext.ApplicationUser.FirstOrDefault(x => x.Email == "admin@dotnetmastery.com");
                 _userManager.AddToRoleAsync(applicationUser, SD.Role_Admin).GetAwaiter().GetResult();
             }
-            return
+            return;
 
         }
     }
