@@ -26,6 +26,13 @@ namespace BulkyWeb.Areas.Admin.Controllers
         public IActionResult GetAll()
         {
             List<ApplicationUser> users = _db.ApplicationUser.Include(x => x.Company).ToList();
+            foreach(var user in users)
+            {
+                if(user.Company == null)
+                {
+                    user.Company = new() { Name = "" };
+                }
+            }
             return Json(new { data = users });
         }
 
