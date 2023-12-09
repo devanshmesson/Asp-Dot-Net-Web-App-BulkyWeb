@@ -41,6 +41,28 @@ namespace BulkyWeb.Areas.Admin.Controllers
             return Json(new { data = users });
         }
 
+        [HttpPost]
+        public IActionResult LockUnlock(string userId)
+        {
+            var user = _db.ApplicationUser.FirstOrDefault(x => x.Id == userId);
+            if(user == null)
+            {
+                return Json(new {Success = false, message = "Error while locking/unlocking" });
+            }
+
+            if(user.LockoutEnd != null && user.LockoutEnd > DateTime.Now)
+            {
+                //User is currently locked and we need to unlock the user
+                user.LockoutEnd = DateTime.Now;
+            }
+            else
+            {
+                user.LockoutEnd = DateTime.Now.AddDays(30);
+            }
+            _db.SaveChanges();
+            return Json(new { success = true, message = "Delete Successful"})
+        }
+
         #endregion
 
     }
