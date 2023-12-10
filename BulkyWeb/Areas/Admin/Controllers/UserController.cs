@@ -48,6 +48,7 @@ namespace BulkyWeb.Areas.Admin.Controllers
         [HttpPost]
         public IActionResult LockUnlock([FromBody] string userId)
         {
+            //Lock/Unlock functionality
             var user = _db.ApplicationUser.FirstOrDefault(x => x.Id == userId);
             if (user == null)
             {
