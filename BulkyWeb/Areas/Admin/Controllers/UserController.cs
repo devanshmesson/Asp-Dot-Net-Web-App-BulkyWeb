@@ -29,11 +29,15 @@ namespace BulkyWeb.Areas.Admin.Controllers
 
             var userRoles = _db.UserRoles.ToList();
             var roles = _db.Roles.ToList();
-            foreach(var user in users)
+            foreach (var user in users)
             {
-                var roleId = userRoles.FirstOrDefault(x => x.UserId == user.Id).RoleId;
-                user.Role = roles.FirstOrDefault(x => x.Id == roleId).Name;
-                if(user.Company == null)
+                var roleId = userRoles.FirstOrDefault(x => x.UserId == user.Id)?.RoleId;
+                if (roleId != null)
+                {
+                    user.Role = roles.FirstOrDefault(x => x.Id == roleId)?.Name;
+
+                }
+                if (user.Company == null)
                 {
                     user.Company = new() { Name = "" };
                 }
@@ -42,15 +46,15 @@ namespace BulkyWeb.Areas.Admin.Controllers
         }
 
         [HttpPost]
-        public IActionResult LockUnlock(string userId)
+        public IActionResult LockUnlock([FromBody] string userId)
         {
             var user = _db.ApplicationUser.FirstOrDefault(x => x.Id == userId);
-            if(user == null)
+            if (user == null)
             {
-                return Json(new {Success = false, message = "Error while locking/unlocking" });
+                return Json(new { Success = false, message = "Error while locking/unlocking" });
             }
 
-            if(user.LockoutEnd != null && user.LockoutEnd > DateTime.Now)
+            if (user.LockoutEnd != null && user.LockoutEnd > DateTime.Now)
             {
                 //User is currently locked and we need to unlock the user
                 user.LockoutEnd = DateTime.Now;
@@ -60,7 +64,7 @@ namespace BulkyWeb.Areas.Admin.Controllers
                 user.LockoutEnd = DateTime.Now.AddDays(30);
             }
             _db.SaveChanges();
-            return Json(new { success = true, message = "Delete Successful"})
+            return Json(new { success = true, message = "Operation Successful" });
         }
 
         #endregion
