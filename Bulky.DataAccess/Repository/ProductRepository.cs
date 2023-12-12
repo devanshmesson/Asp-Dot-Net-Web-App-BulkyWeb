@@ -26,10 +26,10 @@ namespace Bulky.DataAccess.Repository
                 obj.Author = product.Author;
                 obj.ISBN = product.ISBN;
                 obj.ListPrice = product.ListPrice;
-                if (obj.ImageUrl != null)
+               /* if (obj.ImageUrl != null)
                 {
                     obj.ImageUrl = product.ImageUrl;
-                }
+                }*/
             }
         }
     }

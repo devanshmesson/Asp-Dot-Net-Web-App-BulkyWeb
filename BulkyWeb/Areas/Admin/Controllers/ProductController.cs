@@ -52,13 +52,13 @@ namespace BulkyWeb.Areas.Admin.Controllers
             var product = _unitOfWork.Product.Get(x=>x.Id == id);
 
             var wwwrootPath = _webHostEnvironment.WebRootPath;
-            var imagePath = product.ImageUrl.TrimStart('\\');
-            var fullImagePath = Path.Combine(wwwrootPath, imagePath);
+           // var imagePath = product.ImageUrl.TrimStart('\\');
+            //var fullImagePath = Path.Combine(wwwrootPath, imagePath);
 
-            if(System.IO.File.Exists(fullImagePath))
+           /* if(System.IO.File.Exists(fullImagePath))
             {
                 System.IO.File.Delete(fullImagePath);
-            }
+            }*/
             if(product != null)
             {
                 _unitOfWork.Product.Remove(product);
@@ -106,7 +106,7 @@ namespace BulkyWeb.Areas.Admin.Controllers
                     var fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
                     var productPath = Path.Combine(wwwrootPath, @"images\product");
 
-                    if(!string.IsNullOrEmpty(obj.Product.ImageUrl))
+                  /*  if(!string.IsNullOrEmpty(obj.Product.ImageUrl))
                     {
                         var oldImagePath = Path.Combine(wwwrootPath,obj.Product.ImageUrl.TrimStart('\\'));
                         if(System.IO.File.Exists(oldImagePath))
@@ -114,12 +114,12 @@ namespace BulkyWeb.Areas.Admin.Controllers
                             System.IO.File.Delete(oldImagePath);
                         }
 
-                    }
+                    }*/
                     using (var fileStream = new FileStream(Path.Combine(productPath, fileName), FileMode.Create))
                     {
                         file.CopyTo(fileStream);
                     };
-                    obj.Product.ImageUrl = @"\images\product\" + fileName;
+                    //obj.Product.ImageUrl = @"\images\product\" + fileName;
                 }
                 if(obj.Product.Id == 0)
                 {
