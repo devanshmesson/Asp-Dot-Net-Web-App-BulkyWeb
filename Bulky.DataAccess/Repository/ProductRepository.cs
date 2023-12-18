@@ -26,6 +26,7 @@ namespace Bulky.DataAccess.Repository
                 obj.Author = product.Author;
                 obj.ISBN = product.ISBN;
                 obj.ListPrice = product.ListPrice;
+                obj.ProductImages = product.ProductImages;
                /* if (obj.ImageUrl != null)
                 {
                     obj.ImageUrl = product.ImageUrl;

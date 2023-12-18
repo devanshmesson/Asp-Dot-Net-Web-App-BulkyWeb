@@ -5,6 +5,7 @@ using Bulky.Utility;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using NuGet.DependencyResolver;
 
 namespace BulkyWeb.Areas.Admin.Controllers
 {
@@ -26,40 +27,40 @@ namespace BulkyWeb.Areas.Admin.Controllers
             return View(product);
         }
 
-       /* public IActionResult Delete(int? id)
-        {
-            if (id != null || id > 0)
-            {
-                IEnumerable<SelectListItem> CategoryList = _unitOfWork.Category.GetAll().Select(x => new SelectListItem
-                {
-                    Text = x.Name,
-                    Value = x.Id.ToString()
-                });
-                ProductVM productVM = new()
-                {
-                    Product = _unitOfWork.Product.Get(x => x.Id == id),
-                    CategoryList = CategoryList
-                };
+        /* public IActionResult Delete(int? id)
+         {
+             if (id != null || id > 0)
+             {
+                 IEnumerable<SelectListItem> CategoryList = _unitOfWork.Category.GetAll().Select(x => new SelectListItem
+                 {
+                     Text = x.Name,
+                     Value = x.Id.ToString()
+                 });
+                 ProductVM productVM = new()
+                 {
+                     Product = _unitOfWork.Product.Get(x => x.Id == id),
+                     CategoryList = CategoryList
+                 };
 
-                return View(productVM);
-            }
-            return NotFound();
-        }*/
+                 return View(productVM);
+             }
+             return NotFound();
+         }*/
 
         [HttpDelete]
         public IActionResult Delete(int id)
         {
-            var product = _unitOfWork.Product.Get(x=>x.Id == id);
+            var product = _unitOfWork.Product.Get(x => x.Id == id);
 
             var wwwrootPath = _webHostEnvironment.WebRootPath;
-           // var imagePath = product.ImageUrl.TrimStart('\\');
+            // var imagePath = product.ImageUrl.TrimStart('\\');
             //var fullImagePath = Path.Combine(wwwrootPath, imagePath);
 
-           /* if(System.IO.File.Exists(fullImagePath))
-            {
-                System.IO.File.Delete(fullImagePath);
-            }*/
-            if(product != null)
+            /* if(System.IO.File.Exists(fullImagePath))
+             {
+                 System.IO.File.Delete(fullImagePath);
+             }*/
+            if (product != null)
             {
                 _unitOfWork.Product.Remove(product);
                 _unitOfWork.Save();
@@ -80,7 +81,7 @@ namespace BulkyWeb.Areas.Admin.Controllers
                 CategoryList = CategoryList
             };
 
-            if(id == null || id <= 0)
+            if (id == null || id <= 0)
             {
                 return View(productVM);
             }
@@ -92,36 +93,15 @@ namespace BulkyWeb.Areas.Admin.Controllers
             return NotFound();
         }
         [HttpPost]
-        public IActionResult Upsert(ProductVM obj, IFormFile? file)
+        public IActionResult Upsert(ProductVM obj, List<IFormFile>? files)
         {
-            if(int.TryParse(obj.Product.Title,out _))
+            if (int.TryParse(obj.Product.Title, out _))
             {
                 ModelState.AddModelError("Title", "Title cannot be null");
             }
             if (ModelState.IsValid)
             {
-                if(file!=null)
-                {
-                    var wwwrootPath = _webHostEnvironment.WebRootPath;
-                    var fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
-                    var productPath = Path.Combine(wwwrootPath, @"images\product");
-
-                  /*  if(!string.IsNullOrEmpty(obj.Product.ImageUrl))
-                    {
-                        var oldImagePath = Path.Combine(wwwrootPath,obj.Product.ImageUrl.TrimStart('\\'));
-                        if(System.IO.File.Exists(oldImagePath))
-                        {
-                            System.IO.File.Delete(oldImagePath);
-                        }
-
-                    }*/
-                    using (var fileStream = new FileStream(Path.Combine(productPath, fileName), FileMode.Create))
-                    {
-                        file.CopyTo(fileStream);
-                    };
-                    //obj.Product.ImageUrl = @"\images\product\" + fileName;
-                }
-                if(obj.Product.Id == 0)
+                if (obj.Product.Id == 0)
                 {
                     _unitOfWork.Product.Add(obj.Product);
                 }
@@ -130,7 +110,42 @@ namespace BulkyWeb.Areas.Admin.Controllers
                     _unitOfWork.Product.Update(obj.Product);
                 }
                 _unitOfWork.Save();
-                TempData["success"] = "Product details updated successfully";
+                if (files != null)
+                {
+                    var wwwrootPath = _webHostEnvironment.WebRootPath;
+                    foreach (var file in files)
+                    {
+                        var fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
+                        var productPath = @"images/products/product-" + obj.Product.Id;
+                        var finalPath = Path.Combine(wwwrootPath, productPath);
+
+                        if (!Directory.Exists(finalPath))
+                            Directory.CreateDirectory(finalPath);
+
+
+                        using (var fileStream = new FileStream(Path.Combine(finalPath, fileName), FileMode.Create))
+                        {
+                            file.CopyTo(fileStream);
+                        };
+
+                        ProductImage productImage = new()
+                        {
+                            ImageUrl = @"\" + productPath + @"\" +  fileName,
+                            ProductId = obj.Product.Id,
+                        };
+
+                        if(obj.Product.ProductImages == null)
+                        {
+                            obj.Product.ProductImages = new List<ProductImage>();
+                        }
+
+                        obj.Product.ProductImages.Add(productImage);
+                    }
+                    _unitOfWork.Product.Update(obj.Product);
+                    _unitOfWork.Save();
+                }
+
+                TempData["success"] = "Product details created/updated successfully";
                 return RedirectToAction("Index");
             }
             return View();
