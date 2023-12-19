@@ -87,7 +87,7 @@ namespace BulkyWeb.Areas.Admin.Controllers
             }
             else
             {
-                productVM.Product = _unitOfWork.Product.Get(x => x.Id == id);
+                productVM.Product = _unitOfWork.Product.Get(x => x.Id == id, IncludeProperties: "ProductImages");
                 return View(productVM);
             }
             return NotFound();
