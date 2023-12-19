@@ -95,6 +95,9 @@
 
                         <img src="@images.ImageUrl" width="100%"
                              style="border-radius: 5px; border:1px solid #bbb9b9"/>
+                            <a asp-action="DeleteImage" asp-route-imageId="@images.Id">
+                                <i class="bi bi-trash-fill"></i> Delete
+                            </a>
 
                     </div>
                 }

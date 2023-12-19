@@ -92,6 +92,23 @@ namespace BulkyWeb.Areas.Admin.Controllers
             }
             return NotFound();
         }
+
+        public IActionResult DeleteImage(int imageId)
+        {
+            var productImage = _unitOfWork.ProductImage.Get(x => x.Id == imageId);
+            var wwwRootPath = _webHostEnvironment.WebRootPath;
+            if(productImage != null)
+            {
+                var imagePath = Path.Combine(wwwRootPath, productImage.ImageUrl.TrimStart('\\'));
+                if(System.IO.File.Exists(imagePath))
+                {
+                    System.IO.File.Delete(imagePath);
+                }
+                _unitOfWork.ProductImage.Remove(productImage);
+                _unitOfWork.Save();
+            }
+            return RedirectToAction("Upsert", new {id= productImage?.ProductId});
+        }
         [HttpPost]
         public IActionResult Upsert(ProductVM obj, List<IFormFile>? files)
         {
