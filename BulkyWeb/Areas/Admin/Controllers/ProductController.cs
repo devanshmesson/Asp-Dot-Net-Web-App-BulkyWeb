@@ -53,8 +53,18 @@ namespace BulkyWeb.Areas.Admin.Controllers
             var product = _unitOfWork.Product.Get(x => x.Id == id);
 
             var wwwrootPath = _webHostEnvironment.WebRootPath;
-            // var imagePath = product.ImageUrl.TrimStart('\\');
-            //var fullImagePath = Path.Combine(wwwrootPath, imagePath);
+            var productPath = @"images/products/product-" + id;
+            var fullImagePath = Path.Combine(wwwrootPath, productPath);
+
+            if(Directory.Exists(fullImagePath))
+            {
+                foreach(var file in Directory.GetFiles(fullImagePath))
+                {
+                    System.IO.File.Delete(file);    
+                }
+                Directory.Delete(fullImagePath);
+            }
+
 
             /* if(System.IO.File.Exists(fullImagePath))
              {
